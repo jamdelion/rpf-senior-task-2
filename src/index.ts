@@ -20,11 +20,11 @@ export const createInitialState = (
       stationIndex: index + 1,
       leftWorker: {
         hands: [null, null],
-        assemblyTimeLeft: 0
+        assemblyTimeLeft: 0,
       },
       rightWorker: {
         hands: [null, null],
-        assemblyTimeLeft: 0
+        assemblyTimeLeft: 0,
       },
     })),
     stats: {
@@ -131,7 +131,40 @@ export const processWorkerPair = (
   const beltIndex = pair.stationIndex - 1;
   const itemAtStation = belt[beltIndex] as Item;
 
-  if (itemAtStation === null || itemAtStation === "C") {
+  if (itemAtStation === null) {
+    if (isHoldingFinishedProduct(pair.leftWorker)) {
+      const updatedBelt = [...belt];
+      updatedBelt[beltIndex] = "C";
+
+      return {
+        updatedPair: {
+          ...pair,
+          leftWorker: removeFinishedProductFromHand(pair.leftWorker),
+        },
+        updatedBelt,
+      };
+    }
+
+    if (isHoldingFinishedProduct(pair.rightWorker)) {
+      const updatedBelt = [...belt];
+      updatedBelt[beltIndex] = "C";
+
+      return {
+        updatedPair: {
+          ...pair,
+          rightWorker: removeFinishedProductFromHand(pair.rightWorker),
+        },
+        updatedBelt,
+      };
+    }
+
+    return {
+      updatedPair: pair,
+      updatedBelt: belt,
+    };
+  }
+
+    if (itemAtStation === "C") {
     return {
       updatedPair: pair,
       updatedBelt: belt,
@@ -235,5 +268,25 @@ export const updateAssemblyForPair = (pair: WorkerPair): WorkerPair => {
     ...pair,
     leftWorker: updateWorkerAssembly(pair.leftWorker),
     rightWorker: updateWorkerAssembly(pair.rightWorker),
+  };
+};
+
+const isHoldingFinishedProduct = (worker: Worker): boolean => {
+  return worker.hands.includes("C");
+};
+
+const removeFinishedProductFromHand = (worker: Worker): Worker => {
+  const nextHands = [...worker.hands] as [Item, Item];
+  const cIndex = nextHands.findIndex((item) => item === "C");
+
+  if (cIndex === -1) {
+    return worker;
+  }
+
+  nextHands[cIndex] = null;
+
+  return {
+    ...worker,
+    hands: nextHands,
   };
 };

@@ -261,4 +261,52 @@ describe("assembling components into products", () => {
       createWorkerPair(createWorker(["C", null], 0), createWorker()),
     );
   });
+
+  it("places finished product C onto an empty station slot", () => {
+    const pair = createWorkerPair(createWorker(["C", null], 0), createWorker());
+
+    const belt: Item[] = [null, null, null];
+
+    const result = processWorkerPair(pair, belt);
+
+    expect(result.updatedPair).toEqual(
+      createWorkerPair(createWorker([null, null], 0), createWorker()),
+    );
+
+    expect(result.updatedBelt).toEqual(["C", null, null]);
+  });
+
+  it("prioritises the left worker if both workers have completed their product and there is an empty slot", () => {
+    const pair = createWorkerPair(
+      createWorker(["C", null], 0),
+      createWorker(["C", null], 0),
+    );
+
+    const belt: Item[] = [null, null, null];
+
+    const result = processWorkerPair(pair, belt);
+
+    expect(result.updatedPair).toEqual(
+      createWorkerPair(
+        createWorker([null, null], 0),
+        createWorker(["C", null], 0),
+      ),
+    );
+
+    expect(result.updatedBelt).toEqual(["C", null, null]);
+  });
+
+  // assumption: can hold components and products at the same time
+  it("can hold components and products", () => {
+    const pair = createWorkerPair(createWorker(["C", null], 0), createWorker());
+
+    const belt: Item[] = ["A", null, null];
+
+    const result = processWorkerPair(pair, belt);
+
+    expect(result.updatedPair).toEqual(
+      createWorkerPair(createWorker(["C", "A"]), createWorker()),
+    );
+    expect(result.updatedBelt).toEqual([null, null, null]);
+  });
 });
