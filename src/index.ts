@@ -1,7 +1,10 @@
 import type {
   IncomingItem,
+  Item,
   SimulationConfig,
   SimulationState,
+  Worker,
+  WorkerPair,
 } from "./index.types.js";
 
 console.log("Hello Jo");
@@ -81,4 +84,81 @@ export const tick = (
   const movedState = advanceBelt(state);
   const newItem = generateRandomItem(randomNumberGenerator);
   return addItemAtStart(movedState, newItem);
+};
+
+const hasEmptyHand = (worker: Worker): Boolean => {
+  return worker.hands.includes(null);
+};
+
+const canPickItem = (worker: Worker, item: Item): boolean => {
+  if (item !== "A" && item !== "B") {
+    return false;
+  }
+
+  return hasEmptyHand(worker) && !worker.hands.includes(item);
+};
+
+const addItemToHand = (worker: Worker, item: Exclude<Item, null>): Worker => {
+  const nextHands = [...worker.hands] as [Item, Item];
+  const emptyHandIndex = nextHands.findIndex((hand) => hand === null);
+
+  const handsFull = emptyHandIndex === -1;
+
+  if (handsFull) {
+    return worker;
+  }
+
+  nextHands[emptyHandIndex] = item;
+
+  return {
+    ...worker,
+    hands: nextHands,
+  };
+};
+
+export const processWorkerPair = (
+  pair: WorkerPair,
+  belt: Array<Item>,
+): { updatedPair: WorkerPair; updatedBelt: Array<Item> } => {
+  const beltIndex = pair.stationIndex - 1;
+  const itemAtStation = belt[beltIndex] as Item;
+
+  if (itemAtStation === null || itemAtStation === "C") {
+    return {
+      updatedPair: pair,
+      updatedBelt: belt,
+    };
+  }
+
+  // left worker gets priority
+  if (canPickItem(pair.leftWorker, itemAtStation)) {
+    const updatedBelt = [...belt];
+    updatedBelt[beltIndex] = null;
+
+    return {
+      updatedPair: {
+        ...pair,
+        leftWorker: addItemToHand(pair.leftWorker, itemAtStation),
+      },
+      updatedBelt,
+    };
+  }
+
+  if (canPickItem(pair.rightWorker, itemAtStation)) {
+    const updatedBelt = [...belt];
+    updatedBelt[beltIndex] = null;
+
+    return {
+      updatedPair: {
+        ...pair,
+        rightWorker: addItemToHand(pair.rightWorker, itemAtStation),
+      },
+      updatedBelt,
+    };
+  }
+
+  return {
+    updatedPair: pair,
+    updatedBelt: belt,
+  };
 };

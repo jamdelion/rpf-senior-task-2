@@ -8,13 +8,13 @@ export type Item = "A" | "B" | "C" | null;
 
 export type IncomingItem = Exclude<Item, "C">
 
-type WorkerPair = {
+export type WorkerPair = {
   stationIndex: number;
   leftWorker: Worker;
   rightWorker: Worker;
 };
 
-type Worker = {
+export type Worker = {
   hands: [Item, Item];
 };
 

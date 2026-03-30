@@ -3,9 +3,10 @@ import {
   advanceBelt,
   createInitialState,
   generateRandomItem,
+  processWorkerPair,
   tick,
 } from "../index.js";
-import type { Item, SimulationState } from "../index.types.js";
+import type { Item, SimulationState, WorkerPair } from "../index.types.js";
 
 const STANDARD_CONFIG = {
   steps: 10,
@@ -129,5 +130,48 @@ describe("adding a new item", () => {
     const nextState = tick(state, () => 0.1);
 
     expect(nextState.belt).toEqual([null, "A", null]);
+  });
+});
+
+describe("workers picking up items", () => {
+  // assumption: left worker gets priority if can pick up item
+  it("left worker picks up a component if both workers have empty hands", () => {
+    const pair: WorkerPair = {
+      stationIndex: 1,
+      leftWorker: {
+        hands: [null, null],
+      },
+      rightWorker: {
+        hands: [null, null],
+      },
+    };
+
+    const belt: Array<Item> = ["A", null, null];
+
+    const result = processWorkerPair(pair, belt);
+
+    expect(result.updatedPair).toEqual({
+      stationIndex: 1,
+      leftWorker: {
+        hands: ["A", null],
+      },
+      rightWorker: {
+        hands: [null, null],
+      },
+    });
+
+    expect(result.updatedBelt).toEqual([null, null, null]);
+  });
+
+  it("workers pick up nothing if the slot is empty", () => {});
+
+  it("right worker picks up component if left worker's hands are full", () => {});
+
+  it("worker does not pick up completed products ('C')", () => {
+ 
+  });
+
+    it("worker does not pick up duplicate components", () => {
+
   });
 });
