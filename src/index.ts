@@ -1,4 +1,8 @@
-import type { SimulationConfig, SimulationState } from "./index.types.js";
+import type {
+  IncomingItem,
+  SimulationConfig,
+  SimulationState,
+} from "./index.types.js";
 
 console.log("Hello Jo");
 
@@ -39,4 +43,20 @@ export const advanceBelt = (state: SimulationState): SimulationState => {
         state.stats.finishedProducts + (exitingItem === "C" ? 1 : 0),
     },
   };
+};
+
+export const generateRandomItem = (
+  randomNumberGenerator: () => number,
+): IncomingItem => {
+  const randomValue = randomNumberGenerator();
+
+  if (randomValue < 1 / 3) {
+    return null;
+  }
+
+  if (randomValue < 2 / 3) {
+    return "A";
+  }
+
+  return "B";
 };

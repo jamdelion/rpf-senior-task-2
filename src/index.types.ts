@@ -6,6 +6,8 @@ export type SimulationConfig = {
 
 export type Item = "A" | "B" | "C" | null;
 
+export type IncomingItem = Exclude<Item, "C">
+
 type WorkerPair = {
   stationIndex: number;
   leftWorker: Worker;

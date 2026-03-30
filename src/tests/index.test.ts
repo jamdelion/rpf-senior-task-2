@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { advanceBelt, createInitialState } from "../index.js";
+import { advanceBelt, createInitialState, generateRandomItem } from "../index.js";
 import type { Item, SimulationState } from "../index.types.js";
 
 const STANDARD_CONFIG = {
@@ -92,5 +92,19 @@ describe("conveyor belt movement", () => {
       unpickedA: 0,
       unpickedB: 1,
     });
+  });
+});
+
+describe("generating random items", () => {
+  it("returns null when the random value is in the first third", () => {
+    expect(generateRandomItem(() => 0.1)).toBe(null);
+  });
+
+  it("returns A when the random value is in the second third", () => {
+    expect(generateRandomItem(() => 0.5)).toBe("A");
+  });
+
+  it("returns B when the random value is in the final third", () => {
+    expect(generateRandomItem(() => 0.9)).toBe("B");
   });
 });
