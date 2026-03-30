@@ -1,18 +1,19 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createInitialState } from "../index.js";
+import { advanceBelt, createInitialState } from "../index.js";
+import type { Item, SimulationState } from "../index.types.js";
+
+const STANDARD_CONFIG = {
+  steps: 10,
+  beltLength: 3,
+  // assumption: can only place the product into an empty slot?
+  timeToAssemble: 4,
+};
 
 describe("setting up the initial state", () => {
   let state: ReturnType<typeof createInitialState>;
 
   beforeEach(() => {
-    const config = {
-      steps: 10,
-      beltLength: 3,
-      // assumption: can only place the product into an empty slot?
-      timeToAssemble: 4,
-    };
-
-    state = createInitialState(config);
+    state = createInitialState(STANDARD_CONFIG);
   });
   // assumption: the belt starts empty
   it("creates an empty belt and zeroed stats", () => {
@@ -56,5 +57,25 @@ describe("setting up the initial state", () => {
         },
       },
     ]);
+  });
+});
+
+describe("conveyor belt movement", () => {
+  let nextState: SimulationState;
+  beforeEach(() => {
+    const state = createInitialState(STANDARD_CONFIG);
+
+    const stateWithItems = {
+      ...state,
+      belt: ["A", null, "B", null] as Array<Item>,
+    };
+
+    nextState = advanceBelt(stateWithItems);
+  });
+  it("moves all items forward by one slot", () => {
+    // We don't test slot 1 (index 0) because the new item will be random
+    expect(nextState.belt[1]).toBe("A"); // A has moved to slot 2
+    expect(nextState.belt[2]).toBe(null);
+    expect(nextState.belt[3]).toBe("B");
   });
 });

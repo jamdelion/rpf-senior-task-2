@@ -3,21 +3,26 @@ export type SimulationConfig = {
   beltLength: number;
   timeToAssemble: number;
 };
-type Item = "A" | "B" | "C" | null;
+
+export type Item = "A" | "B" | "C" | null;
+
 type WorkerPair = {
   stationIndex: number;
   leftWorker: Worker;
   rightWorker: Worker;
 };
+
 type Worker = {
   hands: [Item, Item];
 };
+
 export type SimulationState = {
   currentStep: number;
   belt: Array<Item>;
   stats: SimulationStats;
   workers: Array<WorkerPair>;
 };
+
 type SimulationStats = {
   finishedProducts: number;
   unpickedA: number;

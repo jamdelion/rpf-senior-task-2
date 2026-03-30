@@ -24,3 +24,10 @@ export const createInitialState = (
     },
   };
 };
+
+export const advanceBelt = (state: SimulationState): SimulationState => {
+  return {
+    ...state,
+    belt: [null, ...state.belt.slice(0, -1)],
+  };
+};
