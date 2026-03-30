@@ -7,6 +7,7 @@ import {
   tick,
 } from "../index.js";
 import type { Item, SimulationState, WorkerPair } from "../index.types.js";
+import { createWorkerPair } from "./index.test.helpers.js";
 
 const STANDARD_CONFIG = {
   steps: 10,
@@ -14,6 +15,8 @@ const STANDARD_CONFIG = {
   // assumption: can only place the product into an empty slot?
   timeToAssemble: 4,
 };
+
+const workersWithEmptyHands: WorkerPair = createWorkerPair();
 
 describe("setting up the initial state", () => {
   let state: ReturnType<typeof createInitialState>;
@@ -136,42 +139,70 @@ describe("adding a new item", () => {
 describe("workers picking up items", () => {
   // assumption: left worker gets priority if can pick up item
   it("left worker picks up a component if both workers have empty hands", () => {
-    const pair: WorkerPair = {
-      stationIndex: 1,
-      leftWorker: {
-        hands: [null, null],
-      },
-      rightWorker: {
-        hands: [null, null],
-      },
-    };
+    const belt: Array<Item> = ["A", null, null];
+
+    const result = processWorkerPair(workersWithEmptyHands, belt);
+
+    expect(result.updatedPair).toEqual(
+      createWorkerPair(["A", null], [null, null]),
+    );
+
+    expect(result.updatedBelt).toEqual([null, null, null]);
+  });
+
+  it("workers pick up nothing if the slot is empty", () => {
+    const belt: Array<Item> = [null, null, null];
+
+    const result = processWorkerPair(workersWithEmptyHands, belt);
+
+    expect(result.updatedPair).toEqual(workersWithEmptyHands); // unchanged
+
+    expect(result.updatedBelt).toEqual([null, null, null]);
+  });
+
+  it("right worker picks up component if left worker's hands are full", () => {
+    const pair: WorkerPair = createWorkerPair(["A", "B"], [null, null]);
 
     const belt: Array<Item> = ["A", null, null];
 
     const result = processWorkerPair(pair, belt);
 
-    expect(result.updatedPair).toEqual({
-      stationIndex: 1,
-      leftWorker: {
-        hands: ["A", null],
-      },
-      rightWorker: {
-        hands: [null, null],
-      },
-    });
-
+    expect(result.updatedPair.leftWorker.hands).toEqual(["A", "B"]);
+    expect(result.updatedPair.rightWorker.hands).toEqual(["A", null]);
     expect(result.updatedBelt).toEqual([null, null, null]);
   });
 
-  it("workers pick up nothing if the slot is empty", () => {});
-
-  it("right worker picks up component if left worker's hands are full", () => {});
-
   it("worker does not pick up completed products ('C')", () => {
- 
+    const belt: Array<Item> = ["C", null, null];
+
+    const result = processWorkerPair(workersWithEmptyHands, belt);
+
+    expect(result.updatedPair).toEqual(workersWithEmptyHands); // unchanged
+
+    expect(result.updatedBelt).toEqual(["C", null, null]);
   });
 
-    it("worker does not pick up duplicate components", () => {
+  it("other worker can pick up a component if the first worker already has that component", () => {
+    const pair: WorkerPair = createWorkerPair(["A", null], [null, null]);
 
+    const belt: Array<Item> = ["A", null, null];
+
+    const result = processWorkerPair(pair, belt);
+
+    expect(result.updatedPair.leftWorker.hands).toEqual(["A", null]);
+    expect(result.updatedPair.rightWorker.hands).toEqual(["A", null]);
+    expect(result.updatedBelt).toEqual([null, null, null]);
+  });
+
+  it("worker does not pick up component if both workers have that component already", () => {
+    const pair: WorkerPair = createWorkerPair(["B", null], ["B", null]);
+
+    const belt: Array<Item> = ["B", null, null];
+
+    const result = processWorkerPair(pair, belt);
+
+    expect(result.updatedPair.leftWorker.hands).toEqual(["B", null]);
+    expect(result.updatedPair.rightWorker.hands).toEqual(["B", null]);
+    expect(result.updatedBelt).toEqual(["B", null, null]);
   });
 });
