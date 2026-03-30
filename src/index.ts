@@ -6,6 +6,7 @@ import type {
   Worker,
   WorkerPair,
 } from "./index.types.js";
+import { DEFAULT_ASSEMBLY_TIME } from "./tests/index.test.js";
 
 console.log("Hello Jo");
 
@@ -19,9 +20,11 @@ export const createInitialState = (
       stationIndex: index + 1,
       leftWorker: {
         hands: [null, null],
+        assemblyTimeLeft: 0
       },
       rightWorker: {
         hands: [null, null],
+        assemblyTimeLeft: 0
       },
     })),
     stats: {
@@ -91,6 +94,10 @@ const hasEmptyHand = (worker: Worker): Boolean => {
 };
 
 const canPickItem = (worker: Worker, item: Item): boolean => {
+  if (worker.assemblyTimeLeft > 0) {
+    return false;
+  }
+
   if (item !== "A" && item !== "B") {
     return false;
   }
@@ -119,6 +126,7 @@ const addItemToHand = (worker: Worker, item: Exclude<Item, null>): Worker => {
 export const processWorkerPair = (
   pair: WorkerPair,
   belt: Array<Item>,
+  timeToAssemble: number = DEFAULT_ASSEMBLY_TIME,
 ): { updatedPair: WorkerPair; updatedBelt: Array<Item> } => {
   const beltIndex = pair.stationIndex - 1;
   const itemAtStation = belt[beltIndex] as Item;
@@ -135,10 +143,16 @@ export const processWorkerPair = (
     const updatedBelt = [...belt];
     updatedBelt[beltIndex] = null;
 
+    const leftWorkerWithItem = addItemToHand(pair.leftWorker, itemAtStation);
+    const updatedLeftWorker = maybeStartAssembling(
+      leftWorkerWithItem,
+      timeToAssemble,
+    );
+
     return {
       updatedPair: {
         ...pair,
-        leftWorker: addItemToHand(pair.leftWorker, itemAtStation),
+        leftWorker: updatedLeftWorker,
       },
       updatedBelt,
     };
@@ -148,10 +162,16 @@ export const processWorkerPair = (
     const updatedBelt = [...belt];
     updatedBelt[beltIndex] = null;
 
+    const rightWorkerWithItem = addItemToHand(pair.rightWorker, itemAtStation);
+    const updatedRightWorker = maybeStartAssembling(
+      rightWorkerWithItem,
+      timeToAssemble,
+    );
+
     return {
       updatedPair: {
         ...pair,
-        rightWorker: addItemToHand(pair.rightWorker, itemAtStation),
+        rightWorker: updatedRightWorker,
       },
       updatedBelt,
     };
@@ -160,5 +180,60 @@ export const processWorkerPair = (
   return {
     updatedPair: pair,
     updatedBelt: belt,
+  };
+};
+
+const hasRequiredComponents = (worker: Worker): boolean => {
+  return worker.hands.includes("A") && worker.hands.includes("B");
+};
+
+const maybeStartAssembling = (
+  worker: Worker,
+  timeToAssemble: number,
+): Worker => {
+  if (worker.assemblyTimeLeft > 0) {
+    return worker;
+  }
+
+  if (!hasRequiredComponents(worker)) {
+    return worker;
+  }
+
+  return {
+    ...worker,
+    assemblyTimeLeft: timeToAssemble,
+  };
+};
+
+const finishProductAssembly = (worker: Worker): Worker => {
+  return {
+    ...worker,
+    hands: ["C", null],
+    assemblyTimeLeft: 0,
+  };
+};
+
+const updateWorkerAssembly = (worker: Worker): Worker => {
+  if (worker.assemblyTimeLeft === 0) {
+    return worker;
+  }
+
+  const nextTicksRemaining = worker.assemblyTimeLeft - 1;
+
+  if (nextTicksRemaining === 0) {
+    return finishProductAssembly(worker);
+  }
+
+  return {
+    ...worker,
+    assemblyTimeLeft: nextTicksRemaining,
+  };
+};
+
+export const updateAssemblyForPair = (pair: WorkerPair): WorkerPair => {
+  return {
+    ...pair,
+    leftWorker: updateWorkerAssembly(pair.leftWorker),
+    rightWorker: updateWorkerAssembly(pair.rightWorker),
   };
 };

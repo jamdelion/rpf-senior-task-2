@@ -5,15 +5,17 @@ import {
   generateRandomItem,
   processWorkerPair,
   tick,
+  updateAssemblyForPair,
 } from "../index.js";
 import type { Item, SimulationState, WorkerPair } from "../index.types.js";
-import { createWorkerPair } from "./index.test.helpers.js";
+import { createWorker, createWorkerPair } from "./index.test.helpers.js";
 
+export const DEFAULT_ASSEMBLY_TIME = 4;
 const STANDARD_CONFIG = {
   steps: 10,
   beltLength: 3,
   // assumption: can only place the product into an empty slot?
-  timeToAssemble: 4,
+  timeToAssemble: DEFAULT_ASSEMBLY_TIME,
 };
 
 const workersWithEmptyHands: WorkerPair = createWorkerPair();
@@ -42,27 +44,33 @@ describe("setting up the initial state", () => {
         stationIndex: 1,
         leftWorker: {
           hands: [null, null],
+          assemblyTimeLeft: 0,
         },
         rightWorker: {
           hands: [null, null],
+          assemblyTimeLeft: 0,
         },
       },
       {
         stationIndex: 2,
         leftWorker: {
           hands: [null, null],
+          assemblyTimeLeft: 0,
         },
         rightWorker: {
           hands: [null, null],
+          assemblyTimeLeft: 0,
         },
       },
       {
         stationIndex: 3,
         leftWorker: {
           hands: [null, null],
+          assemblyTimeLeft: 0,
         },
         rightWorker: {
           hands: [null, null],
+          assemblyTimeLeft: 0,
         },
       },
     ]);
@@ -144,7 +152,7 @@ describe("workers picking up items", () => {
     const result = processWorkerPair(workersWithEmptyHands, belt);
 
     expect(result.updatedPair).toEqual(
-      createWorkerPair(["A", null], [null, null]),
+      createWorkerPair(createWorker(["A", null]), createWorker()),
     );
 
     expect(result.updatedBelt).toEqual([null, null, null]);
@@ -161,7 +169,10 @@ describe("workers picking up items", () => {
   });
 
   it("right worker picks up component if left worker's hands are full", () => {
-    const pair: WorkerPair = createWorkerPair(["A", "B"], [null, null]);
+    const pair: WorkerPair = createWorkerPair(
+      createWorker(["A", "B"]),
+      createWorker(),
+    );
 
     const belt: Array<Item> = ["A", null, null];
 
@@ -183,7 +194,10 @@ describe("workers picking up items", () => {
   });
 
   it("other worker can pick up a component if the first worker already has that component", () => {
-    const pair: WorkerPair = createWorkerPair(["A", null], [null, null]);
+    const pair: WorkerPair = createWorkerPair(
+      createWorker(["A", null]),
+      createWorker(),
+    );
 
     const belt: Array<Item> = ["A", null, null];
 
@@ -195,7 +209,10 @@ describe("workers picking up items", () => {
   });
 
   it("worker does not pick up component if both workers have that component already", () => {
-    const pair: WorkerPair = createWorkerPair(["B", null], ["B", null]);
+    const pair: WorkerPair = createWorkerPair(
+      createWorker(["B", null]),
+      createWorker(["B", null]),
+    );
 
     const belt: Array<Item> = ["B", null, null];
 
@@ -204,5 +221,44 @@ describe("workers picking up items", () => {
     expect(result.updatedPair.leftWorker.hands).toEqual(["B", null]);
     expect(result.updatedPair.rightWorker.hands).toEqual(["B", null]);
     expect(result.updatedBelt).toEqual(["B", null, null]);
+  });
+});
+
+describe("assembling components into products", () => {
+  it("worker starts assembling when they hold one of each component", () => {
+    const pair: WorkerPair = createWorkerPair(
+      createWorker(["A", null]),
+      createWorker(),
+    );
+
+    const belt: Array<Item> = ["B", null, null];
+
+    const result = processWorkerPair(pair, belt);
+
+    expect(result.updatedPair).toEqual(
+      createWorkerPair(createWorker(["A", "B"], 4), createWorker()),
+    );
+
+    expect(result.updatedBelt).toEqual([null, null, null]);
+  });
+
+  it("decrements the assembly time", () => {
+    const pair = createWorkerPair(createWorker(["A", "B"], 4), createWorker());
+
+    const updatedPair = updateAssemblyForPair(pair);
+
+    expect(updatedPair).toEqual(
+      createWorkerPair(createWorker(["A", "B"], 3), createWorker()),
+    );
+  });
+
+  it("turns A and B into C and null when assembly finishes", () => {
+    const pair = createWorkerPair(createWorker(["A", "B"], 1), createWorker());
+
+    const updatedPair = updateAssemblyForPair(pair);
+
+    expect(updatedPair).toEqual(
+      createWorkerPair(createWorker(["C", null], 0), createWorker()),
+    );
   });
 });

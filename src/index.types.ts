@@ -16,6 +16,7 @@ export type WorkerPair = {
 
 export type Worker = {
   hands: [Item, Item];
+  assemblyTimeLeft: number
 };
 
 export type SimulationState = {

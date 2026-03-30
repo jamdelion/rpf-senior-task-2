@@ -1,15 +1,19 @@
-import type { Item, WorkerPair, Worker } from "../index.types.js";
+import type { Item, Worker, WorkerPair } from "../index.types.js";
 
-const createWorker = (hands: [Item, Item] = [null, null]): Worker => ({
+export const createWorker = (
+  hands: [Item, Item] = [null, null],
+  assemblyTimeLeft = 0,
+): Worker => ({
   hands,
+  assemblyTimeLeft,
 });
 
 export const createWorkerPair = (
-  leftHands: [Item, Item] = [null, null],
-  rightHands: [Item, Item] = [null, null],
+  leftWorker: Worker = createWorker(),
+  rightWorker: Worker = createWorker(),
   stationIndex = 1,
 ): WorkerPair => ({
   stationIndex,
-  leftWorker: createWorker(leftHands),
-  rightWorker: createWorker(rightHands),
+  leftWorker,
+  rightWorker,
 });
