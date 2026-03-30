@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  addItemAtStart,
   advanceBelt,
   createInitialState,
   generateRandomItem,
   processWorkerPair,
+  runSimulation,
   tick,
   updateAssemblyForPair,
 } from "../index.js";
@@ -127,18 +129,18 @@ describe("generating random items", () => {
 });
 
 describe("adding a new item", () => {
-  it("advances the belt and puts a new item into the first slot", () => {
+  it("puts a new item into the first slot", () => {
     const state = initializeStateWithBelt([null, "A", null]);
 
-    const nextState = tick(state, () => 0.5);
+    const nextState = addItemAtStart(state, "B");
 
-    expect(nextState.belt).toEqual(["A", null, "A"]);
+    expect(nextState.belt).toEqual(["B", "A", null]);
   });
 
   it("can put an empty slot into the first position", () => {
-    const state = initializeStateWithBelt(["A", null, null]);
+    const state = initializeStateWithBelt(["A", "A", null]);
 
-    const nextState = tick(state, () => 0.1);
+    const nextState = addItemAtStart(state, null);
 
     expect(nextState.belt).toEqual([null, "A", null]);
   });
@@ -308,5 +310,22 @@ describe("assembling components into products", () => {
       createWorkerPair(createWorker(["C", "A"]), createWorker()),
     );
     expect(result.updatedBelt).toEqual([null, null, null]);
+  });
+});
+
+describe("running the simulation", () => {
+  it("runs one full tick", () => {
+    const state = createInitialState(STANDARD_CONFIG);
+
+    const nextState = tick(state, () => 0.1);
+
+    expect(nextState.currentStep).toBe(1);
+    expect(nextState.belt).toHaveLength(state.belt.length);
+  });
+
+  it("runs the simulation for the configured number of steps", () => {
+    const finalState = runSimulation(STANDARD_CONFIG, () => 0.1);
+
+    expect(finalState.currentStep).toBe(STANDARD_CONFIG.steps);
   });
 });

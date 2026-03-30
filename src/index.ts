@@ -86,7 +86,15 @@ export const tick = (
 ): SimulationState => {
   const movedState = advanceBelt(state);
   const newItem = generateRandomItem(randomNumberGenerator);
-  return addItemAtStart(movedState, newItem);
+  // return addItemAtStart(movedState, newItem);
+  const stateWithNewItem = addItemAtStart(movedState, newItem);
+  const stateAfterWorkers = processAllWorkerPairs(stateWithNewItem);
+  const stateAfterAssembly = updateAssemblyForAllPairs(stateAfterWorkers);
+
+  return {
+    ...stateAfterAssembly,
+    currentStep: state.currentStep + 1,
+  };
 };
 
 const hasEmptyHand = (worker: Worker): Boolean => {
@@ -290,3 +298,42 @@ const removeFinishedProductFromHand = (worker: Worker): Worker => {
     hands: nextHands,
   };
 };
+
+export const processAllWorkerPairs = (
+  state: SimulationState,
+): SimulationState => {
+  let nextBelt = [...state.belt];
+
+  const nextWorkers = state.workers.map((pair) => {
+    const result = processWorkerPair(pair, nextBelt);
+    nextBelt = result.updatedBelt;
+    return result.updatedPair;
+  });
+
+  return {
+    ...state,
+    workers: nextWorkers,
+    belt: nextBelt,
+  };
+};
+
+export const updateAssemblyForAllPairs = (
+  state: SimulationState,
+): SimulationState => {
+  return {
+    ...state,
+    workers: state.workers.map(updateAssemblyForPair),
+  };
+};
+
+export const runSimulation = ( config: SimulationConfig,
+  randomNumberGenerator: () => number,
+): SimulationState => {
+  let state = createInitialState(config);
+
+  for (let i = 0; i < config.steps; i++) {
+    state = tick(state, randomNumberGenerator);
+  }
+
+  return state;
+}
