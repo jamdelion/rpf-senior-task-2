@@ -26,8 +26,17 @@ export const createInitialState = (
 };
 
 export const advanceBelt = (state: SimulationState): SimulationState => {
+  const exitingItem = state.belt[state.belt.length - 1];
+
   return {
     ...state,
     belt: [null, ...state.belt.slice(0, -1)],
+    stats: {
+      ...state.stats,
+      unpickedA: state.stats.unpickedA + (exitingItem === "A" ? 1 : 0),
+      unpickedB: state.stats.unpickedB + (exitingItem === "B" ? 1 : 0),
+      finishedProducts:
+        state.stats.finishedProducts + (exitingItem === "C" ? 1 : 0),
+    },
   };
 };

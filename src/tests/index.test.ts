@@ -60,22 +60,37 @@ describe("setting up the initial state", () => {
   });
 });
 
+const initializeStateWithBelt = (belt: Item[]): SimulationState => {
+  return {
+    ...createInitialState(STANDARD_CONFIG),
+    belt,
+  };
+};
+
 describe("conveyor belt movement", () => {
-  let nextState: SimulationState;
-  beforeEach(() => {
-    const state = createInitialState(STANDARD_CONFIG);
-
-    const stateWithItems = {
-      ...state,
-      belt: ["A", null, "B", null] as Array<Item>,
-    };
-
-    nextState = advanceBelt(stateWithItems);
-  });
   it("moves all items forward by one slot", () => {
+    const stateWithItems = initializeStateWithBelt(["A", null, "B"]);
+
+    const nextState = advanceBelt(stateWithItems);
+
     // We don't test slot 1 (index 0) because the new item will be random
     expect(nextState.belt[1]).toBe("A"); // A has moved to slot 2
     expect(nextState.belt[2]).toBe(null);
-    expect(nextState.belt[3]).toBe("B");
+  });
+
+  it("counts unpicked components", () => {
+    const stateWithItems = initializeStateWithBelt([null, "A", "B"]);
+
+    const nextState = advanceBelt(stateWithItems);
+
+    expect(nextState.belt[1]).toBe(null);
+    expect(nextState.belt[2]).toBe("A");
+    expect(nextState.belt.length).toBe(3);
+
+    expect(nextState.stats).toEqual({
+      finishedProducts: 0,
+      unpickedA: 0,
+      unpickedB: 1,
+    });
   });
 });
