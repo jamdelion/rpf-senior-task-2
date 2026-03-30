@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { STANDARD_CONFIG } from "../constants.js";
 import {
   addItemAtStart,
   advanceBelt,
@@ -10,15 +11,11 @@ import {
   updateAssemblyForPair,
 } from "../index.js";
 import type { Item, SimulationState, WorkerPair } from "../index.types.js";
-import { createWorker, createWorkerPair } from "./index.test.helpers.js";
-
-export const DEFAULT_ASSEMBLY_TIME = 4;
-const STANDARD_CONFIG = {
-  steps: 10,
-  beltLength: 3,
-  // assumption: can only place the product into an empty slot?
-  timeToAssemble: DEFAULT_ASSEMBLY_TIME,
-};
+import {
+  createFakeRandomNumSequence,
+  createWorker,
+  createWorkerPair,
+} from "./index.test.helpers.js";
 
 const workersWithEmptyHands: WorkerPair = createWorkerPair();
 
@@ -327,5 +324,21 @@ describe("running the simulation", () => {
     const finalState = runSimulation(STANDARD_CONFIG, () => 0.1);
 
     expect(finalState.currentStep).toBe(STANDARD_CONFIG.steps);
+  });
+
+  it("produces stats for a non-random sequence", () => {
+    const config = {
+      ...STANDARD_CONFIG,
+      steps: 6,
+    };
+
+    const rng = createFakeRandomNumSequence([0.5, 0.9, 0.1, 0.5, 0.9, 0.1]);
+
+    const finalState = runSimulation(config, rng);
+
+    expect(finalState.currentStep).toBe(6);
+    expect(finalState.stats.finishedProducts).toBeGreaterThanOrEqual(0);
+    expect(finalState.stats.unpickedA).toBeGreaterThanOrEqual(0);
+    expect(finalState.stats.unpickedB).toBeGreaterThanOrEqual(0);
   });
 });

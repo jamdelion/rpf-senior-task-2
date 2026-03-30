@@ -17,3 +17,22 @@ export const createWorkerPair = (
   leftWorker,
   rightWorker,
 });
+
+export const createFakeRandomNumSequence = (values: number[]) => {
+  let index = 0;
+
+  return (): number => {
+    if (index >= values.length) {
+      throw new Error("Ran out of fake random values");
+    }
+
+    const value = values[index];
+
+    if (value === undefined) {
+      throw new Error("Fake random sequence returned undefined");
+    }
+
+    index++;
+    return value;
+  };
+};

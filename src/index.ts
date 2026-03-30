@@ -1,3 +1,4 @@
+import { DEFAULT_ASSEMBLY_TIME, STANDARD_CONFIG } from "./constants.js";
 import type {
   IncomingItem,
   Item,
@@ -6,9 +7,6 @@ import type {
   Worker,
   WorkerPair,
 } from "./index.types.js";
-import { DEFAULT_ASSEMBLY_TIME } from "./tests/index.test.js";
-
-console.log("Hello Jo");
 
 export const createInitialState = (
   config: SimulationConfig,
@@ -172,7 +170,7 @@ export const processWorkerPair = (
     };
   }
 
-    if (itemAtStation === "C") {
+  if (itemAtStation === "C") {
     return {
       updatedPair: pair,
       updatedBelt: belt,
@@ -326,7 +324,8 @@ export const updateAssemblyForAllPairs = (
   };
 };
 
-export const runSimulation = ( config: SimulationConfig,
+export const runSimulation = (
+  config: SimulationConfig,
   randomNumberGenerator: () => number,
 ): SimulationState => {
   let state = createInitialState(config);
@@ -336,4 +335,10 @@ export const runSimulation = ( config: SimulationConfig,
   }
 
   return state;
-}
+};
+
+const finalState = runSimulation(STANDARD_CONFIG, Math.random);
+console.log("Final stats:");
+console.log(`Finished products: ${finalState.stats.finishedProducts}`);
+console.log(`Unpicked A: ${finalState.stats.unpickedA}`);
+console.log(`Unpicked B: ${finalState.stats.unpickedB}`);
