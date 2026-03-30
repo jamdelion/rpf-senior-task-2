@@ -337,8 +337,10 @@ export const runSimulation = (
   return state;
 };
 
-const finalState = runSimulation(STANDARD_CONFIG, Math.random);
-console.log("Final stats:");
-console.log(`Finished products: ${finalState.stats.finishedProducts}`);
-console.log(`Unpicked A: ${finalState.stats.unpickedA}`);
-console.log(`Unpicked B: ${finalState.stats.unpickedB}`);
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const finalState = runSimulation(STANDARD_CONFIG, Math.random);
+  console.log("Final stats:");
+  console.log(`Finished products: ${finalState.stats.finishedProducts}`);
+  console.log(`Unpicked A: ${finalState.stats.unpickedA}`);
+  console.log(`Unpicked B: ${finalState.stats.unpickedB}`);
+}
