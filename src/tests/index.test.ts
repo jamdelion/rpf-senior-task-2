@@ -24,4 +24,37 @@ describe("setting up the initial state", () => {
       unpickedB: 0,
     });
   });
+
+  // assumption: number of workstations equals the number of slots
+  it("creates a pair of workers per slot, with empty hands", () => {
+    expect(state.workers).toEqual([
+      {
+        stationIndex: 1,
+        leftWorker: {
+          hands: [null, null],
+        },
+        rightWorker: {
+          hands: [null, null],
+        },
+      },
+      {
+        stationIndex: 2,
+        leftWorker: {
+          hands: [null, null],
+        },
+        rightWorker: {
+          hands: [null, null],
+        },
+      },
+      {
+        stationIndex: 3,
+        leftWorker: {
+          hands: [null, null],
+        },
+        rightWorker: {
+          hands: [null, null],
+        },
+      },
+    ]);
+  });
 });
