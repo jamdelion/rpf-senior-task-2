@@ -60,3 +60,25 @@ export const generateRandomItem = (
 
   return "B";
 };
+
+export const addItemAtStart = (
+  state: SimulationState,
+  item: IncomingItem,
+): SimulationState => {
+  const nextBelt = [...state.belt];
+  nextBelt[0] = item;
+
+  return {
+    ...state,
+    belt: nextBelt,
+  };
+};
+
+export const tick = (
+  state: SimulationState,
+  randomNumberGenerator: () => number,
+): SimulationState => {
+  const movedState = advanceBelt(state);
+  const newItem = generateRandomItem(randomNumberGenerator);
+  return addItemAtStart(movedState, newItem);
+};

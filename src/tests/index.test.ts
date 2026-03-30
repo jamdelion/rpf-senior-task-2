@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { advanceBelt, createInitialState, generateRandomItem } from "../index.js";
+import {
+  advanceBelt,
+  createInitialState,
+  generateRandomItem,
+  tick,
+} from "../index.js";
 import type { Item, SimulationState } from "../index.types.js";
 
 const STANDARD_CONFIG = {
@@ -106,5 +111,23 @@ describe("generating random items", () => {
 
   it("returns B when the random value is in the final third", () => {
     expect(generateRandomItem(() => 0.9)).toBe("B");
+  });
+});
+
+describe("adding a new item", () => {
+  it("advances the belt and puts a new item into the first slot", () => {
+    const state = initializeStateWithBelt([null, "A", null]);
+
+    const nextState = tick(state, () => 0.5);
+
+    expect(nextState.belt).toEqual(["A", null, "A"]);
+  });
+
+  it("can put an empty slot into the first position", () => {
+    const state = initializeStateWithBelt(["A", null, null]);
+
+    const nextState = tick(state, () => 0.1);
+
+    expect(nextState.belt).toEqual([null, "A", null]);
   });
 });
