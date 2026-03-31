@@ -21,10 +21,10 @@ npm install
  Sample output:
 
  ```
- Final stats:
-Finished products: X
-Unpicked A: Y
-Unpicked B: Z
+Final stats:
+Finished products: 25
+Unpicked A: 7
+Unpicked B: 6
 ```
 
 ### Statistical analysis
